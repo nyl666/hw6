@@ -1,0 +1,82 @@
+%6.1 add高斯噪声
+i=imread('lena.bmp');
+i2=imnoise(i,'gaussian',0.5,0.01);
+figure(1)
+subplot(121)
+imshow(i);
+title('');
+subplot(122)
+imshow(i2);
+title('加入高斯噪声(u=0.5,s^2=0.01)');
+%saunshu
+n=5;
+h=1/n^2.*ones(n,n);
+i2=conv2(double(i),double(h),'same');
+i2=uint8(i2);
+%zhongzhi
+n=5;
+a=ones(n,n);
+p=size(i);
+x1=double(i);
+x2=x1;
+for i=1:p(1)-n+1
+    for j=1:p(2)-n+1
+        c=x1(i:i+(n-1),j:j+(n-1));
+        e=c(1,:);
+        for u=2:n
+            e=[e,c(u,:)];
+        end
+        mm=median(e);
+        x2(i+(n-1)/2,j+(n-1)/2)=mm;
+    end
+end
+i3=uint8(x2);
+%6.2
+i=imread('lena.bmp');
+p2=imnoise(i,'salt & pepper',0.1);
+h=medfilt2(p2);
+n=5;
+h1=1/n^2.*ones(n,n);
+i2=conv2(double(i),double(h1),'same');
+i2=uint8(i2);
+
+
+figure(1);
+subplot(221)
+imshow(i);
+title('原始图像')
+subplot(222)
+imshow(p2);
+title('加椒盐噪声')
+subplot(223)
+imshow(h);
+title('中值滤波')
+subplot(224)
+imshow(i2);
+title('算术均值滤波')
+%6.3
+i=imread('lena.bmp');
+h=fspecial('motion',50,45);
+i1=imfilter(i,h,'circular','conv');
+i2=imnoise(i1,'gaussian',0,0.01);
+noise=imnoise(zeros(size(i)),'gaussian',0,0.01);
+
+nsr=sum(noise(:).^2)/sum(im2double(i(:)).^2);
+i3=deconvwnr(i2,h,nsr);
+v=0.0001;
+noisepower=v*prod(size(i));
+[g,lagra]=deconvreg(i1,h,noisepower);
+
+figure(1);
+subplot(221);
+imshow(i1);
+title('模糊后图像（角度为45度）');
+subplot(222)
+imshow(i2);
+title('加噪并模糊的图像')
+subplot(223)
+imshow(i3);
+title('维纳滤波后图像')
+subplot(224)
+imshow(g);
+title('最小二乘法滤波')
